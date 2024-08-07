@@ -1,3 +1,9 @@
+package node;
+
+import model.InputData;
+import model.ProcessResult;
+import model.RequiredData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,23 +40,22 @@ public class CombinedInputCollectorNode implements Node {
     }
 
     @Override
-    public ProcessResult execute(List<String> providedData) {
+    public ProcessResult execute(InputData inputData) {
 
-        // Nothing to process.
-        return declareInputData();
-    }
-
-    @Override
-    public ProcessResult declareInputData() {
-
-        List<String> requiredData = new ArrayList<>();
+        ProcessResult result = new ProcessResult("COMPLETE");
         for (Node referencedNode : referencedNodes) {
-            ProcessResult result = referencedNode.declareInputData();
-            if (result != null && result.getRequiredData() != null) {
-                requiredData.addAll(result.getRequiredData());
+            RequiredData dataRequired = referencedNode.declareInputData();
+            if (dataRequired != null) {
+                result.addInputData(dataRequired);
             }
         }
         // Only declare the data required. So this node is complete.
-        return new ProcessResult("COMPLETE", requiredData);
+        return result;
+    }
+
+    @Override
+    public RequiredData declareInputData() {
+
+        return null;
     }
 }

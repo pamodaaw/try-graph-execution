@@ -1,4 +1,7 @@
-// ExecutionState.java
+package model;// model.ExecutionState.java
+import model.ProcessResult;
+import node.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 

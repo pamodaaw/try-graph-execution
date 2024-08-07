@@ -1,5 +1,24 @@
-// RegSequence.java
-import java.sql.SQLOutput;
+package model;/*
+ * Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import model.ProcessResult;
+import node.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +38,7 @@ public class RegSequence {
     public void addNextNode(String nodeName, Node nextNode) {
         Node currentNode = findNode(nodeName);
         if (currentNode != null) {
-            if (currentNode instanceof TaskExecutorNode) {
-                ((TaskExecutorNode) currentNode).setNextNode(nextNode);
-            } else if (currentNode instanceof UserChoiceDecisionNode) {
-                ((UserChoiceDecisionNode) currentNode).addNextNode(nextNode);
-            }
+            currentNode.setNextNode(nextNode);
         }
     }
 
@@ -36,7 +51,7 @@ public class RegSequence {
         return null;
     }
 
-    public ExecutionState execute(List<String> providedData) {
+    public ExecutionState execute(List<InputData> inputDataList) {
         Node current;
 
         if (currentState == null) {
@@ -52,6 +67,8 @@ public class RegSequence {
         }
 
         while (current != null) {
+
+            System.out.println("Executing node: " + current.getName());
             ProcessResult result = current.execute(providedData);
 
             if (!"COMPLETE".equals(result.getStatus())) {
@@ -61,9 +78,10 @@ public class RegSequence {
             }
 
             if ("COMPLETE".equals(result.getStatus()) &&
-                    result.getRequiredData() != null && !result.getRequiredData().isEmpty()) {
+                    result.getInputDataList() != null && !result.getInputDataList().isEmpty()) {
                 // Input is required but the node execution is complete.
                 current = current.getNextNode();
+                result.setStatus("INCOMPLETE");
                 currentState = new ExecutionState(current, result);
                 return currentState;
             }
@@ -72,6 +90,6 @@ public class RegSequence {
 
         // Clear the state if we reach the end of the execution
         currentState = null;
-        return new ExecutionState(null, new ProcessResult("SUCCESSFUL", null)); // Execution completed
+        return new ExecutionState(null, new ProcessResult("SUCCESSFUL")); // Execution completed
     }
 }
