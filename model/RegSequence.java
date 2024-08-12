@@ -68,8 +68,18 @@ public class RegSequence {
 
         while (current != null) {
 
+            InputData data = null;
+
+            // Find matching InputData for the current node
+            for (InputData inputData : inputDataList) {
+                if (inputData.getNodeName().equals(current.getName())) {
+                    data = inputData;
+                    break;
+                }
+            }
+
             System.out.println("Executing node: " + current.getName());
-            ProcessResult result = current.execute(providedData);
+            ProcessResult result = current.execute(data);
 
             if (!"COMPLETE".equals(result.getStatus())) {
                 // Input is required

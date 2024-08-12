@@ -4,6 +4,7 @@ import model.Element;
 import model.RequiredData;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +36,16 @@ public class AttributeCollector implements Executor {
     public RequiredData process(Map<String, String> input) {
         // Implement the actual task logic here
         if (input != null && !input.isEmpty()) {
-            for (Element data : requiredData) {
+            Iterator<Element> iterator = requiredData.iterator();
+            while (iterator.hasNext()) {
+                Element data = iterator.next();
 
                 // Check if data.getName is there as a key in the input map.
                 if (input.containsKey(data.getName())) {
                     // Check if the value of the key is not null or empty.
                     if (input.get(data.getName()) != null && !input.get(data.getName()).isEmpty()) {
-                        // Remove the data from the requiredData list.
-                        requiredData.remove(data);
+                        // Remove the data from the requiredData list using the iterator.
+                        iterator.remove();
                     }
                 }
             }

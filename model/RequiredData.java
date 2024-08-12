@@ -10,7 +10,6 @@ public class RequiredData {
     private String nodeName;
     private List<Element> requiredData;
 
-
     public RequiredData(String inputType) {
         this.inputType = inputType;
         this.requiredData = new ArrayList<>();

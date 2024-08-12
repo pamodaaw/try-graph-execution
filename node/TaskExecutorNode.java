@@ -17,6 +17,11 @@ public class TaskExecutorNode implements Node {
         this.executor = executor;
     }
 
+    public Executor getExecutor() {
+
+        return executor;
+    }
+
     public String getName() {
         return name;
     }
@@ -33,9 +38,16 @@ public class TaskExecutorNode implements Node {
     public ProcessResult execute(InputData inputData) {
         // Delegate the execution logic to the executor.Executor
         System.out.println("Inside task node: " + name);
+        RequiredData data;
         if (executor != null) {
-            RequiredData data = executor.process(inputData.getInputData());
+            if (inputData != null) {
+                data = executor.process(inputData.getInputData());
+            } else {
+                data = executor.process(null);
+            }
+
             if (data != null && "USER_INPUT".equals(data.getInputType())) {
+                data.setNodeName(name);
                 return new ProcessResult("INCOMPLETE", data);
             }
             return new ProcessResult("COMPLETE");
@@ -48,7 +60,9 @@ public class TaskExecutorNode implements Node {
     public RequiredData declareInputData() {
 
         if (executor != null) {
-            return executor.declareRequiredData();
+            RequiredData data = executor.declareRequiredData();
+            data.setNodeName(name);
+            return data;
         }
         return null;
     }

@@ -45,10 +45,13 @@ public class UserChoiceDecisionNode implements Node {
 
             System.out.println("User input available. Start processing.");
             for (Node nextNode : nextNodes) {
-                if (inputData.getInputData().get("USER_CHOICE").equals(nextNode.getName())) {
-                    selectedNode = nextNode;
-                    nodeSelected = true;
-                    break;
+                if (nextNode instanceof TaskExecutorNode) {
+                    String executorName = ((TaskExecutorNode) nextNode).getExecutor().getName();
+                    if (inputData.getInputData().get("USER_CHOICE").equals(executorName)) {
+                        selectedNode = nextNode;
+                        nodeSelected = true;
+                        break;
+                    }
                 }
             }
         }
@@ -59,7 +62,6 @@ public class UserChoiceDecisionNode implements Node {
             System.out.println("User choice decision node " + name + " is incomplete. Need to make a choice.");
             return new ProcessResult("INCOMPLETE", declareInputData());
         }
-
     }
 
     @Override
@@ -69,10 +71,14 @@ public class UserChoiceDecisionNode implements Node {
             return null;
         }
         RequiredData input = new RequiredData("USER_CHOICE");
+        input.setNodeName(name);
         int count = 0;
         for (Node nextNode : nextNodes) {
-            Element element = new Element("OPTION", nextNode.getName(), "STRING", ++count);
-            input.addRequiredData(element);
+            if (nextNode instanceof TaskExecutorNode) {
+                Element element = new Element("OPTION", ((TaskExecutorNode) nextNode).getExecutor().getName(),
+                                              "STRING", ++count);
+                input.addRequiredData(element);            }
+
         }
         return input;
     }

@@ -8,6 +8,7 @@ import model.ExecutionState;
 import model.InputData;
 import model.ProcessResult;
 import model.RegSequence;
+import model.RequiredData;
 import node.CombinedInputCollectorNode;
 import node.TaskExecutorNode;
 import node.UserChoiceDecisionNode;
@@ -102,21 +103,23 @@ public class MainTest {
         TaskExecutorNode node5 = new TaskExecutorNode("node5", attrCollector2);
 
 
-//        CombinedInputCollectorNode nodeCC1 = new CombinedInputCollectorNode("CC1");
+        CombinedInputCollectorNode node0 = new CombinedInputCollectorNode("node0");
+        node0.addReferencedNode(node1);
+        node0.addReferencedNode(node2);
 //        nodeCC1.addReferencedNode(nodeA);
 //        nodeCC1.addReferencedNode(nodeD1);
 
         // Define the flow of the graph
         RegSequence regSequence = new RegSequence();
 
-//        regSequence.addNode(nodeCC1);
+        regSequence.addNode(node0);
         regSequence.addNode(node1);
         regSequence.addNode(node2);
         regSequence.addNode(node3);
         regSequence.addNode(node4);
         regSequence.addNode(node5);
 
-//        regSequence.addNextNode("CC1", nodeA);
+        regSequence.addNextNode("node0", node1);
         regSequence.addNextNode("node1", node2);
         regSequence.addNextNode("node2", node3);
         regSequence.addNextNode("node2", node4);
@@ -128,25 +131,30 @@ public class MainTest {
         System.out.println("Case 3: Completed");
     }
 
-    private static void getUserInput(List<String> inputs,List<String> requiredData) {
+    private static InputData getUserInput(RequiredData requiredData) {
         // Simulate user input collection
         Scanner scanner = new Scanner(System.in);
 
-        for (String data : requiredData) {
-            System.out.print("Enter " + data + ": ");
-            inputs.add(scanner.nextLine());
+        InputData input = new InputData();
+        input.setNodeName(requiredData.getNodeName());
+
+        for (Element element : requiredData.getRequiredData()) {
+            System.out.print("Enter " + element.getName() + ": ");
+            input.addInputData(element.getName(), scanner.nextLine());
         }
+        return input;
     }
 
-    private static void getUserChoice(List<String> inputs, List<String> requiredData) {
+    private static InputData getUserChoice(RequiredData requiredData) {
 
         Scanner scanner = new Scanner(System.in);
+        List<Element> options = requiredData.getRequiredData();
 
         // Create the prompt message
         StringBuilder promptMessage = new StringBuilder("Choose ");
-        for (int i = 0; i < requiredData.size(); i++) {
-            promptMessage.append(requiredData.get(i));
-            if (i < requiredData.size() - 1) {
+        for (int i = 0; i < options.size(); i++) {
+            promptMessage.append(options.get(i).getName());
+            if (i < options.size() - 1) {
                 promptMessage.append(" OR ");
             }
         }
@@ -155,14 +163,17 @@ public class MainTest {
         // Display the prompt and get user input
         System.out.print(promptMessage.toString());
         String userInput = scanner.nextLine();
-        inputs.add(userInput);
+        InputData input = new InputData();
+        input.setNodeName(requiredData.getNodeName());
+        input.addInputData("USER_CHOICE", userInput);
+        return input;
     }
 
     private static void executeSequence(RegSequence seq) {
 
         // Traverse and execute the graph
         boolean isCompleted = false;
-        List<String> inputs = new ArrayList<>();
+        List<InputData> inputs = new ArrayList<>();
         int count = 0;
 
         // Traverse and execute the graph
@@ -174,15 +185,14 @@ public class MainTest {
                     isCompleted = true;
                     break;
                 }
-                inputs.clear();
                 if ("INCOMPLETE".equals(result.getStatus())) {
-                    System.out.println("node.Node returns incomplete.");
+                    System.out.println("Node returns incomplete.");
                     if (result.getInputDataList() != null && !result.getInputDataList().isEmpty()) {
-                        for (InputData data : result.getInputDataList()) {
+                        for (RequiredData data : result.getInputDataList()) {
                             if ("USER_INPUT".equals(data.getInputType())) {
-                                getUserInput(inputs, data.getRequiredData());
+                                inputs.add(getUserInput(data));
                             } else if ("USER_CHOICE".equals(data.getInputType())) {
-                                getUserChoice(inputs, data.getRequiredData());
+                                inputs.add(getUserChoice(data));
                             }
                             else {
                                 System.out.println("Unknown input type");
